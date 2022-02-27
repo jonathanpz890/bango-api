@@ -1,35 +1,35 @@
-// const bcrypt = require('bcrypt');
-// const User = require('../entities/models/user');
+const User = require('../entities/models/user');
 
-// module.exports = {
-//     createUser: async (req, res) => {
-//         try {
-//             const { phone, passcode } = req.body;
-//             const user = new User({ phone, passcode })
-//             const salt = await bcrypt.genSalt(10);
-//             user.passcode = await bcrypt.hash(user.passcode, salt);
-//             await user.save();
-//             return res.status(201).json({message: "User was created successfully"});
-//         } catch(error) {
-//             return res.status(400).json({error})
-//         }
-//     },
-//     login: async (req, res) => {
-//         try {
-//             const { phone, passcode } = req.body;
-//             const user = await User.findOne({ phone });
-//             if (user) {
-//                 const validPasscode = await bcrypt.compare(passcode, user.passcode);
-//                 if (validPasscode) {
-//                     res.status(200).json({message: 'valid password'})
-//                 } else {
-//                     res.status(400).json({message: 'invalid password'});
-//                 }
-//             } else {
-//                 res.status(404).json({message: 'User not found'});
-//             }
-//         } catch(error) {
-//             res.status(400).json({error})
-//         }
-//     }
-// }
+module.exports = {
+    getAllUsers: async (req, res) => {
+        try {
+            const users = await User.find().populate({ path: 'properties' }).select('-password');
+            return res.status(200).json({
+                success: true,
+                data: {
+                    users
+                }
+            })
+        } catch (error) {
+            return res.status(400).json({ error })
+        }
+    },
+    updateUser: async (req, res) => {
+        const { id, marked } = req.body;
+        try {
+            await User.findByIdAndUpdate(id, { marked });
+            let user = await User.findById(id).populate({ path: 'properties' });
+            user = user.toObject();
+            delete user.password;
+            return res.status(200).json({
+                success: true,
+                data: {
+                    user
+                }
+            })
+        } catch (error) {
+            console.log(error);
+            return res.status(400).json({message: 'something failed'})
+        }
+    }
+}
