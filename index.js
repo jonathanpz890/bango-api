@@ -2,12 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const mongooseURI = `${process.env.DB_PROTOCOL}${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.DB_NAME}`
+const mongooseURI = `${process.env.DB_PROTOCOL}${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}`
 const APIRoutes = require('./src/routes/config.js')
-// const passport = require('passport');
-// const initializePassport = require('./src/passport-config');
-
-// initializePassport(passport);
+const session = require('express-session');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const MongoStore = require('connect-mongo');
+const User = require('./src/entities/models/user');
+const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser')
 
 const app = express();
 
@@ -19,6 +22,43 @@ app.use(cors({
 	credentials: true,
 	allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, api-key, access-control-allow-Headers'
 }));
+app.use(cookieParser())
+app.use(session({
+    secret: 'voldemort',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false,
+        maxAge: 36000000000
+    },
+    store: MongoStore.create({
+        mongoUrl: mongooseURI
+    })
+}))
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy({usernameField: 'phone'}, (phone, password, done) => {
+    User.findOne({ phone }, {}, {populate: 'properties'}, (error, user) => {
+        if (error) return done(error);
+        if (!user) return done(null, false, { message: 'Incorrect phone number' });
+        
+        bcrypt.compare(password, user.password, (error, res) => {
+            if (error) return done(error)
+            if (!res) return done(null, false, { message: 'Incorrect password' });
+            return done(null, user);
+        })
+    })
+}))
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+passport.deserializeUser((id, done) => {
+    User.findById(id, {}, { populate: 'properties' }, (err, user) => {
+        done(err, user);
+    });
+});
+
 app.use('/', APIRoutes);
 
 const startServer = async () => {
