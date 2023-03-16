@@ -11,6 +11,7 @@ const MongoStore = require('connect-mongo');
 const User = require('./src/entities/models/user');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser')
+const cookieSession = require('cookie-session');
 
 const app = express();
 
@@ -20,7 +21,9 @@ app.use(cors({
 	origin: process.env.ALLOWED_ORIGINS.split(','),
 	methods: 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
 	credentials: true,
-	allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, api-key, access-control-allow-Headers'
+	// allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, api-key, access-control-allow-Headers'
+    allowedHeaders: 'Origin, X-Requested-With, Content-Type, X-Access-Token, Accept'
+
 }));
 app.use(cookieParser())
 app.use(session({
@@ -28,8 +31,10 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: false,
-        maxAge: 36000000000
+        secure: process.env.NODE_ENV !== 'dev',
+        httpOnly: process.env.NODE_ENV !== 'dev',
+        maxAge: 36000000000,
+        sameSite: 'none'
     },
     store: MongoStore.create({
         mongoUrl: mongooseURI
@@ -54,6 +59,7 @@ passport.serializeUser((user, done) => {
     done(null, user.id);
 });
 passport.deserializeUser((id, done) => {
+    console.log('deserializing')
     User.findById(id, {}, { populate: 'properties' }, (err, user) => {
         done(err, user);
     });
