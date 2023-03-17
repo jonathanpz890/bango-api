@@ -21,10 +21,12 @@ app.use(cors({
 	origin: process.env.ALLOWED_ORIGINS.split(','),
 	methods: 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
 	credentials: true,
-	// allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, api-key, access-control-allow-Headers'
     allowedHeaders: 'Origin, X-Requested-With, Content-Type, X-Access-Token, Accept'
 
 }));
+if (process.env.NODE_ENV !== 'dev' && process.env.NODE_ENV !== 'localhost') {
+    app.set('trust proxy', 1);
+}
 app.use(cookieParser())
 app.use(session({
     secret: 'voldemort',
