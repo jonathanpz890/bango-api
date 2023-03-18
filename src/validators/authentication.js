@@ -12,6 +12,8 @@ module.exports = {
     ],
     updateUser: [
         body('id').isMongoId(),
-        body('marked').isArray()
+        body('gameId').isMongoId(),
+        body('propertyId').isMongoId(),
+        body('marked').isBoolean()
     ]
 }

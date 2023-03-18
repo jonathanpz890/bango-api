@@ -11,7 +11,8 @@ const MongoStore = require('connect-mongo');
 const User = require('./src/entities/models/user');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser')
-const cookieSession = require('cookie-session');
+const BingoSession = mongoose.model('BingoSession');
+const Property = mongoose.model('Property');
 
 const app = express();
 
@@ -36,7 +37,7 @@ app.use(session({
         secure: process.env.NODE_ENV !== 'dev',
         httpOnly: process.env.NODE_ENV !== 'dev',
         maxAge: 36000000000,
-        sameSite: 'none'
+        sameSite: process.env.NODE_ENV !== 'dev' ? 'none' : 'lax'
     },
     store: MongoStore.create({
         mongoUrl: mongooseURI
@@ -46,7 +47,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.use(new LocalStrategy({usernameField: 'phone'}, (phone, password, done) => {
-    User.findOne({ phone }, {}, {populate: 'properties'}, (error, user) => {
+    User.findOne({ phone }, {}, (error, user) => {
         if (error) return done(error);
         if (!user) return done(null, false, { message: 'Incorrect phone number' });
         
@@ -61,11 +62,19 @@ passport.serializeUser((user, done) => {
     done(null, user.id);
 });
 passport.deserializeUser((id, done) => {
-    User.findById(id, {}, { populate: 'properties' }, (err, user) => {
+    User.findById(id, {}, (err, user) => {
         done(err, user);
     });
 });
 
+// app.get('/', async (req, res) => {
+//     const properties = await Property.find()
+//     const newBingo = new BingoSession({
+//         title: 'בינגו מין',
+//         properties,
+//     })
+//     newBingo.save();
+// })
 app.use('/', APIRoutes);
 
 const startServer = async () => {

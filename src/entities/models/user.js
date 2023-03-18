@@ -15,19 +15,25 @@ const UserSchema = new mongoose.Schema(
             type: String, 
             required: true
         },
-        attraction: {
-            type: String,
-            required: true,
-            default: 'Men'
-        },
-        properties: [{
-            type: mongoose.ObjectId,
-            required: true,
-            ref: 'Property'
-        }],
-        marked: [{
-            type: Number,
-            required: false
+        games: [{
+            type: Object,
+            _id: {
+                type: mongoose.Objectid,
+                ref: 'BingoSession',
+                required: true
+            },
+            properties: [{
+                type: Object,
+                title: {
+                    type: String,
+                    required: true
+                },
+                marked: {
+                    type: Boolean,
+                    required: true,
+                    default: false
+                }
+            }]
         }]
     }
 )

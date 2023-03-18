@@ -7,10 +7,7 @@ const passport = require('passport');
 router.post('/register', Validator.createUser, Middleware.validateRequestSchema,  Service.createUser);
 router.post(
     '/login',
-    passport.authenticate('local', {
-        failureRedirect: '/login',
-        failureFlash: true
-    }),
+    passport.authenticate('local'),
     (req, res) => {
         res.send({
             user: req.user,

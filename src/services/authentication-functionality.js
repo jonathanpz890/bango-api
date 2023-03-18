@@ -7,13 +7,11 @@ module.exports = {
     createUser: async (req, res) => {
         try {
             const { name, phone, password } = req.body;
-            let properties = await Property.find()
-            properties = properties.sort(() => Math.random() - 0.5).slice(0, 25);
             const userExists = await User.findOne({ phone });
             if (userExists) {
                 return res.status(400).json({ message: 'כבר קיים משתמש על המספר הזה' })
             }
-            let user = new User({ name, phone, password, properties })
+            let user = new User({ name, phone, password })
             user.password = await bcrypt.hash(user.password, 10);
             await user.save();
             user = user.toObject();
