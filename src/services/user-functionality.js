@@ -33,7 +33,6 @@ module.exports = {
                         console.error({err});
                         return;
                     }
-                    console.log(updatedUser);
                     return res.status(200).json({
                         success: true,
                         data: {

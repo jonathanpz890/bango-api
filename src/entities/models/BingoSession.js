@@ -5,31 +5,38 @@ const BingoSessionSchema = new mongoose.Schema(
     {
         title: {
             type: String,
-            required: true,
-            unique: true
+            required: true
+        },
+        creator: {
+            type: String,
+            required: true
+        },
+        about: {
+            type: String,
+            required: false
         },
         properties: [{
             type: Object,
             required: true,
-            male: {
+            _id: {
+                type: mongoose.ObjectId,
+                required: true
+            }, 
+            title: {
                 type: String,
-                required: true,
-            },
-            female: {
-                type: String, 
                 required: true
             }
         }],
-        color: {
-            type: String,
-            required: false,
-            default: '#000000'
-        },
+        // color: {
+        //     type: String,
+        //     required: false,
+        //     default: '#000000'
+        // },
         users: [{
             type: mongoose.ObjectId,
             required: false,
             ref: 'User',
-            unique: true
+
         }]
     }
 )
